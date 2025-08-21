@@ -5,6 +5,7 @@ from .serializers import BoockSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from django.shortcuts import get_object_or_404
 
 # Create your views heremdhesuf.
 
@@ -29,18 +30,37 @@ class BookListApiView(APIView):
 #     lookup_field = 'id'
 
 class BookDetailApiView(APIView):
-    def get(self, request, pk):
-        book = Books.objects.get(id=pk)
-        serializer_data = BoockSerializer(book).data
-        info = {
-            'status':'Book taken sucsessfully',
-            'book':serializer_data
-        }
-        return Response(info)
+    def put(self, request, pk):
+        book = get_object_or_404(Books, pk=pk)
+        serializer = BoockSerializer(book, data=request.date)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class BookDeleteApiView(generics.DestroyAPIView):
-    queryset = Books.objects.all()
-    serializer_class = BoockSerializer
+    def patch(self, request, pk):
+        try:
+            book = Books.object.get(id=pk)
+            serializer = BoockSerializer(book, date=request.date, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+        except:
+            return Response({"status":"BAD REQUEST"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# class BookDeleteApiView(generics.DestroyAPIView):
+#     queryset = Books.objects.all()
+#     serializer_class = BoockSerializer
+
+class BookDeleteApiView(APIView):
+    def delete(self, request, pk):
+        book = get_object_or_404(Books, pk=pk)
+        book.delete()
+        return Response({'status':'This book deleted successfully!'})
+
+
 
 class BookUpdateApiViwe(generics.UpdateAPIView):
     queryset = Books.objects.all()
@@ -62,7 +82,42 @@ class BookCreateApiView(APIView):
             }
             return Response(info)
 
-class BookMixedApiView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Books.objects.all()
-    serializer_class = BoockSerializer
+# class BookMixedApiView(generics.RetrieveUpdateDestroyAPIView):
+#     queryset = Books.objects.all()
+#     serializer_class = BoockSerializer
 
+
+class BookMixedApiView(APIView):
+    def get(self, request, pk):
+        book = get_object_or_404(Books, pk=pk)
+        serializer = BoockSerializer(book).data
+        info = {
+            'status':'Queriy worked successfully',
+            'result':serializer
+        }
+        return Response(info)
+
+    def put(self, request, pk):
+        book = get_object_or_404(Books, pk=pk)
+        serializer = BoockSerializer(book, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response({"status: Your serializer has got a problem"})
+
+
+    def patch(self, request, pk):
+        book = get_object_or_404(Books, pk=pk)
+        serializer = BoockSerializer(book, date=request.date, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response({"status: Your serializer has got a problem"})
+
+
+    def delete(self, request, pk):
+        book = get_object_or_404(Books, pk=pk)
+        book.delete()
+        return Response({'status':'This book deleted successfully!'})
